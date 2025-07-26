@@ -2,6 +2,7 @@ package com.example.AlgoCampEcom.services;
 
 import com.example.AlgoCampEcom.dto.CategoryDTO;
 import com.example.AlgoCampEcom.entity.Category;
+import com.example.AlgoCampEcom.exception.CategoryNotFoundException;
 import com.example.AlgoCampEcom.repository.CategoryRepository;
 import com.example.AlgoCampEcom.services.impl.CategoryServiceImpl;
 import org.junit.jupiter.api.Assertions;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -45,5 +47,30 @@ public class CategoryServiceTest {
         List<CategoryDTO> result = categoryService.getAllCategories();
         Assertions.assertEquals(2, result.size());
         verify(categoryRepository, times(1)).findAll();
+    }
+
+    @Test
+    void test_getCategory_shouldReturnCategory() throws Exception {
+        Long categoryId = 1L;
+        Category category = Category.builder()
+                .name("Footwear")
+                .build();
+        category.setId(1L);
+
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+
+        CategoryDTO result = categoryService.getCategory(categoryId);
+
+        Assertions.assertEquals("Footwear", result.getName());
+    }
+
+    @Test
+    void test_getCategory_shouldNotReturnAnyCategory() throws Exception {
+        Long categoryId = 1L;
+
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
+
+        CategoryNotFoundException categoryNotFoundException = Assertions.assertThrows(CategoryNotFoundException.class, () -> categoryService.getCategory(categoryId));
+        Assertions.assertEquals("Category not found with id: 1", categoryNotFoundException.getMessage());
     }
 }
